@@ -120,7 +120,7 @@ let elem = (cls=null, type='div') => {
   options.appendChild(optsLabel);
   
   let optsCode = elem('code', 'textarea'); optsCode.classList.add('opts');
-  optsCode.value = JSON.stringify({ dotVisibility: 0.5, lineVisibility: 0.2, num: 1000, spread: 10, pan: {x: 0, y: 0} }, null, 2);
+  optsCode.value = JSON.stringify({ dotVisibility: 0.5, lineVisibility: 0.2, num: 2000, spread: 15, pan: {x: 0, y: 0} }, null, 2);
   options.appendChild(optsCode);
   
   body.appendChild(options);
