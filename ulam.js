@@ -76,8 +76,8 @@ let interpolatedPt = (pts, ind) => {
   let amt1 = 1 - amt0;
   
   return {
-    x: x0 * amt0 + y0 * amt1,
-    y: x1 * amt0 + y1 * amt1
+    x: x0 * amt0 + x1 * amt1,
+    y: y0 * amt0 + y1 * amt1
   };
   
 };
