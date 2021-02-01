@@ -1,0 +1,9 @@
+{
+
+  "":             [ "text/html",        "ulam.html" ],
+  "js":           [ "text/javascript",  "ulam.js" ],
+
+  "favicon.ico":  [ "image/png",        "asset", "icon.png" ],
+  "icon":         [ "image/x-icon",     "asset", "icon.png" ]
+
+}

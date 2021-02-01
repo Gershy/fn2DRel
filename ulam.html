@@ -1,0 +1,37 @@
+<!doctype html>
+<html spellcheck="false" lang="en">
+  <head>
+    <title>2d visualizer</title>
+    <script type="text/javascript" src="js"></script>
+    <style type="text/css">
+      html { font-family: monospace; }
+      html, body, canvas { position: absolute; width: 100%; height: 100%; left: 0; top: 0; margin: 0; padding: 0; overflow: hidden; }
+      body.err { background-color: rgba(0, 255, 0, 0.3); }
+      .options {
+        position: absolute;
+        left: 0; top: calc(100% - 28px);
+        width: 100%; height: 100%;
+        padding: 10px; box-sizing: border-box;
+        transition: top 200ms ease-in-out;
+        background-color: rgba(255, 255, 255, 0.8);
+        z-index: 2;
+      }
+      .options.active { top: 0; };
+      .options > .note {
+        position: relative;
+        height: 20px; line-height: 20px;
+        padding: 10px;
+        margin-bottom: 30px;
+      }
+      .options > .label {
+        margin-top: 20px;
+        margin-bottom: 5px;
+      }
+      .options > .code { width: 100%; }
+      .options > .code.gen { height: 40%; }
+      .options > .code.fn { height: 5%; }
+      .options > .code.opts { height: 20%; }
+    </style>
+  </head>
+  <body></body>
+</html>
