@@ -120,7 +120,7 @@ let elem = (cls=null, type='div') => {
   options.appendChild(optsLabel);
   
   let optsCode = elem('code', 'textarea'); optsCode.classList.add('opts');
-  optsCode.value = JSON.stringify({ dotVisibility: 0.5, lineVisibility: 0.2, num: 2000, spread: 15, pan: {x: 0, y: 0} }, null, 2);
+  optsCode.value = JSON.stringify({ dotVisibility: 0.5, lineVisibility: 0.2, num: 2000, zoom: 15, pan: {x: 0, y: 0} }, null, 2);
   options.appendChild(optsCode);
   
   body.appendChild(options);
@@ -164,14 +164,14 @@ let elem = (cls=null, type='div') => {
     }
     
   };
-  let draw = (gen, fn, { dotVisibility=0.5, lineVisibility=0.2, num=200, spread=10, pan={ x: 0, y: 0 } }={}) => {
+  let draw = (gen, fn, { dotVisibility=0.5, lineVisibility=0.2, num=200, zoom=10, pan={ x: 0, y: 0 } }={}) => {
     
     clear();
     let hx = c.width >> 1;
     let hy = c.height >> 1;
-    let visPt = ({ x, y }) => ({ x: hx + x * spread + pan.x, y: hy + y * spread + pan.y });
+    let visPt = ({ x, y }) => ({ x: hx + x * zoom + pan.x, y: hy + y * zoom + pan.y });
     
-    let pts = genSlice(gen, num); //.map(({ x, y }) => ({ x: 300 + x * spread + pan.x, y: hy + y * spread + pan.y }));
+    let pts = genSlice(gen, num);
     for (let pt of pts) circle(visPt(pt), 1, { line: 'rgba(0, 0, 0, 0.3)', lw: dotVisibility });
     
     for (let n = 0; n < num; n++) {
