@@ -9,10 +9,11 @@ let createProtocolServer = {
   https: async fn => {
     
     // TLS server on given port (probably 443)
-    let certDir = [ '/', 'etc', 'letsencrypt', 'live', 'chickenisparve.org' ];
+    throw new Error('No cert available');
+    let certDir = [];
     let [ key, cert ] = await Promise.all([
-      fs.promises.readFile(path.join(...certDir, 'privkey.pem')),
-      fs.promises.readFile(path.join(...certDir, 'fullchain.pem'))
+      fs.promises.readFile(path.join(...certDir, 'key.pem')), // privkey
+      fs.promises.readFile(path.join(...certDir, 'cert.pem')) // fullchain
     ]);
     https.createServer({ key, cert }, fn).listen(port, host);
     
@@ -28,12 +29,6 @@ if (!createProtocolServer.hasOwnProperty(protocol)) throw new Error(`Invalid pro
 
 (async () => {
   
-  // Send response
-  let serve = (res, status, content, type) => {
-    res.writeHead(status, { 'Content-Type': type, 'Content-Length': Buffer.byteLength(content) });
-    res.end(content);
-  };
-  
   // Read (potentially cached) file
   let cacheMs = 2000;
   let fileCache = new Map();
@@ -48,13 +43,18 @@ if (!createProtocolServer.hasOwnProperty(protocol)) throw new Error(`Invalid pro
   
   await createProtocolServer[protocol](async (req, res) => {
     
+    let t = +new Date();
     let reqMsg = [];
     let addReqMsg = ln => reqMsg.push(...ln.split('\n'));
-    let serveReq = (...args) => {
-      console.log(`${req.connection.remoteAddress} <- ${req.url}${reqMsg.length ? ':' : ''}`);
+    let serveReq = (res, status, content, type) => {
+      
+      res.writeHead(status, { 'Content-Type': type, 'Content-Length': Buffer.byteLength(content) });
+      res.end(content);
+      
+      console.log(`${req.connection.remoteAddress} <- ${req.url}${reqMsg.length ? ':' : ''} (${((new Date() - t) / 1000).toFixed(2)}ms)`);
       if (reqMsg.length) console.log(reqMsg.map(ln => `> ${ln}`).join('\n'));
       console.log('');
-      serve(...args);
+      
     };
     
     try {

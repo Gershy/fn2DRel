@@ -155,7 +155,7 @@ let elem = (cls=null, type='div') => {
     }
   };
   let drawWithParams = (opts={}) => draw(params.gen, params.fn, { ...params.opts, ...opts }, animVals);
-  let draw = (gen, fn, { dotVisibility=0.5, lineVisibility=0.2, zoom=10, pan={ x: 0, y: 0 }, num=Math.pow(10, 6), ms=1000/30 }={}, animVals={ v1: 0 }) => {
+  let draw = (gen, fn, { dotVisibility=0.5, lineVisibility=0.2, zoom=10, pan={ x: 0, y: 0 }, num=Math.pow(10, 3), ms=1000/30 }={}, animVals={ v1: 0 }) => {
     
     clear();
     let t = performance.now();
@@ -174,19 +174,14 @@ let elem = (cls=null, type='div') => {
       let f = Math.floor(fnInd); // truncate decimal
       if (f >= (pts.length - 1)) continue;
       
-      try {
-        let pt1 = (fnInd === f)
-          ? pts[fnInd]
-          : ((ipt0, ipt1, amt1, amt0=1-amt1) => ({
-              x: ipt0.x * amt0 + ipt1.x * amt1,
-              y: ipt0.y * amt0 + ipt1.y * amt1
-            }))(pts[f + 0], pts[f + 1], fnInd - f)
-        
-        line(visPt(pts[ind]), visPt(pt1), { line: 'rgba(0, 0, 0, 0.5)', lw: lineVisibility });
-      } catch(err) {
-        console.log({ ind, fnInd, f, 'pts[ind]': pts[ind], 'pts[f + 0]': pts[f + 0], 'pts[f + 1]': pts[f + 1] });
-        throw err;
-      }
+      let pt1 = (fnInd === f)
+        ? pts[fnInd]
+        : ((ipt0, ipt1, amt1, amt0=1-amt1) => ({
+            x: ipt0.x * amt0 + ipt1.x * amt1,
+            y: ipt0.y * amt0 + ipt1.y * amt1
+          }))(pts[f + 0], pts[f + 1], fnInd - f)
+      
+      line(visPt(pts[ind]), visPt(pt1), { line: 'rgba(0, 0, 0, 0.5)', lw: lineVisibility });
       
     }
     
@@ -196,7 +191,6 @@ let elem = (cls=null, type='div') => {
   
   body.focus();
   updateParams();
-  drawWithParams();
   
   body.addEventListener('keydown', evt => {
     if (!evt.ctrlKey || evt.key !== 'o') return;
