@@ -61,27 +61,6 @@ let fnToCleanStr = fn => {
   
 };
 
-let interpolatedPt = (pts, ind) => {
-  
-  if (ind < 0) throw new Error('ind < 0');
-  if (ind === Math.round(ind)) return pts[ind];
-  
-  let f = Math.floor(ind);
-  if (f + 0 >= pts.length) throw new Error('oob');
-  if (f + 1 >= pts.length) throw new Error('oob');
-  
-  let { x: x0, y: y0 } = pts[f + 0];
-  let { x: x1, y: y1 } = pts[f + 1];
-  let amt0 = ind - f;
-  let amt1 = 1 - amt0;
-  
-  return {
-    x: x0 * amt0 + x1 * amt1,
-    y: y0 * amt0 + y1 * amt1
-  };
-  
-};
-
 let elem = (cls=null, type='div') => {
   let ret = document.createElement(type);
   if (cls !== null) ret.classList.add(cls);
@@ -99,6 +78,9 @@ let elem = (cls=null, type='div') => {
   note.textContent = 'ctrl+alt+o toggles options';
   options.appendChild(note);
   
+  let stats = elem('stats');
+  options.appendChild(stats);
+  
   let genLabel = elem('label');
   genLabel.textContent = 'Yield any series of { x, y } coordinates';
   options.appendChild(genLabel);
@@ -108,11 +90,14 @@ let elem = (cls=null, type='div') => {
   options.appendChild(genCode);
   
   let fnLabel = elem('label');
-  fnLabel.textContent = 'Maps a point at index n to index f(n)';
+  fnLabel.textContent = [
+    'Maps a point at index n to index f(n, v) where v is a continuously',
+    'incrementing counter, making it useful for animation.'
+  ].join(' ');
   options.appendChild(fnLabel);
   
   let fnCode = elem('code', 'textarea'); fnCode.classList.add('fn');
-  fnCode.value = 'n => Math.sqrt(n)';
+  fnCode.value = '(n, v) => n * v * 0.005';
   options.appendChild(fnCode);
   
   let optsLabel = elem('label');
@@ -120,7 +105,9 @@ let elem = (cls=null, type='div') => {
   options.appendChild(optsLabel);
   
   let optsCode = elem('code', 'textarea'); optsCode.classList.add('opts');
-  optsCode.value = JSON.stringify({ dotVisibility: 0.5, lineVisibility: 0.2, num: 2000, zoom: 15, pan: {x: 0, y: 0} }, null, 2);
+  optsCode.value = JSON.stringify({
+    dotVisibility: 0.6, lineVisibility: 0.2, zoom: 50, pan: { x: 0, y: 0 }, fps: 60 },
+  null, 2);
   options.appendChild(optsCode);
   
   body.appendChild(options);
@@ -151,51 +138,112 @@ let elem = (cls=null, type='div') => {
     ctx.stroke();
   };
   
-  let drawWithInput = () => {
-    
+  let params = { gen: null, fn: null, opts: null };
+  let animVals = { v1: 0 };
+  let updateParams = () => {
     try {
-      let gen = eval(`(${genCode.value})`);
-      let fn = eval(`(${fnCode.value})`);
-      let opts = JSON.parse(optsCode.value);
-      draw(gen, fn, opts);
+      animVals = { v1: 0 };
+      Object.assign(params, {
+        gen: eval(`(${genCode.value})`),
+        fn: eval(`(${fnCode.value})`),
+        opts: JSON.parse(optsCode.value)
+      });
       body.classList.remove('err');
     } catch(err) {
+      console.log(err.stack);
       body.classList.add('err');
     }
-    
   };
-  let draw = (gen, fn, { dotVisibility=0.5, lineVisibility=0.2, num=200, zoom=10, pan={ x: 0, y: 0 } }={}) => {
+  let drawWithParams = (opts={}) => draw(params.gen, params.fn, { ...params.opts, ...opts }, animVals);
+  let draw = (gen, fn, { dotVisibility=0.5, lineVisibility=0.2, zoom=10, pan={ x: 0, y: 0 }, num=Math.pow(10, 6), ms=1000/30 }={}, animVals={ v1: 0 }) => {
     
     clear();
+    let t = performance.now();
     let hx = c.width >> 1;
     let hy = c.height >> 1;
     let visPt = ({ x, y }) => ({ x: hx + x * zoom + pan.x, y: hy + y * zoom + pan.y });
     
-    let pts = genSlice(gen, num);
+    let pts = [];
+    for (let pt of gen()) { if (pts.length >= num) break; pts.push(pt); }
     for (let pt of pts) circle(visPt(pt), 1, { line: 'rgba(0, 0, 0, 0.3)', lw: dotVisibility });
-    
-    for (let n = 0; n < num; n++) {
+    for (let ind = 0; ind < num; ind++) {
+      
+      let fnInd = fn(ind, animVals.v1);
+      if (fnInd < 0) continue;
+      
+      let f = Math.floor(fnInd); // truncate decimal
+      if (f >= (pts.length - 1)) continue;
+      
       try {
-        let p1 = pts[n];
-        let p2 = interpolatedPt(pts, fn(n));
-        line(visPt(p1), visPt(p2), { line: 'rgba(0, 0, 0, 0.5)', lw: lineVisibility });
-      } catch(err) {}
+        let pt1 = (fnInd === f)
+          ? pts[fnInd]
+          : ((ipt0, ipt1, amt1, amt0=1-amt1) => ({
+              x: ipt0.x * amt0 + ipt1.x * amt1,
+              y: ipt0.y * amt0 + ipt1.y * amt1
+            }))(pts[f + 0], pts[f + 1], fnInd - f)
+        
+        line(visPt(pts[ind]), visPt(pt1), { line: 'rgba(0, 0, 0, 0.5)', lw: lineVisibility });
+      } catch(err) {
+        console.log({ ind, fnInd, f, 'pts[ind]': pts[ind], 'pts[f + 0]': pts[f + 0], 'pts[f + 1]': pts[f + 1] });
+        throw err;
+      }
+      
     }
+    
+    return;
     
   };
   
   body.focus();
-  drawWithInput();
+  updateParams();
+  drawWithParams();
   
   body.addEventListener('keydown', evt => {
-    if (evt.key === 'o' && evt.altKey && evt.ctrlKey) options.classList.toggle('active');
-    if (!options.classList.contains('active')) drawWithInput();
+    if (evt.key !== 'o') return;
+    evt.preventDefault();
+    
+    if (!evt.altKey || !evt.ctrlKey) return;
+    options.classList.toggle('active');
+    if (!options.classList.contains('active')) updateParams();
   });
   let resize = () => {
     let { width, height } = body.getBoundingClientRect();
     Object.assign(c, { width, height });
-    drawWithInput();
   };
   window.addEventListener('resize', resize); resize();
+  
+  let goalMs = 1000 / 60 - 1; // 60fps (with 1ms to spare)
+  let latMs = goalMs;
+  let curNum = 1;
+  let cnt = 0;
+  let updTimer = Infinity;
+  
+  let anim = () => {
+    
+    let goalMs = (1000 / params.opts.fps) - 1;
+    
+    let t = performance.now();
+    drawWithParams({ num: curNum, ms: latMs * 4 });
+    let dt = performance.now() - t;
+    animVals.v1 += dt * 0.001;
+    
+    // Rolling average
+    latMs = latMs * 0.95 + dt * 0.05;
+    
+    let numPerMs = curNum / latMs;
+    let idealNum = numPerMs * goalMs;
+    curNum = curNum * 0.95 + idealNum * 0.05;
+    
+    updTimer += dt;
+    
+    if (updTimer >= 1000) {
+      updTimer = 0;
+      stats.textContent = `${curNum.toFixed(0)} samples @ ${(1000 / latMs).toFixed(2)}fps`;
+    }
+    
+    requestAnimationFrame(anim);
+    
+  };
+  requestAnimationFrame(anim);
   
 })();

@@ -13,21 +13,31 @@
         width: 100%; height: 100%;
         padding: 10px; box-sizing: border-box;
         transition: top 200ms ease-in-out;
-        background-color: rgba(255, 255, 255, 0.8);
+        background-color: rgba(255, 255, 255, 0.7);
         z-index: 2;
       }
-      .options.active { top: 0; };
+      .options.active { top: 0; }
       .options > .note {
-        position: relative;
+        position: absolute;
+        display: inline-block;
+        left: 0; top: 0;
         height: 20px; line-height: 20px;
-        padding: 10px;
+        padding: 4px;
+        margin-bottom: 30px;
+      }
+      .options > .stats {
+        position: absolute;
+        display: inline-block;
+        right: 0; top: 0;
+        height: 20px; line-height: 20px;
+        padding: 4px;
         margin-bottom: 30px;
       }
       .options > .label {
         margin-top: 20px;
         margin-bottom: 5px;
       }
-      .options > .code { width: 100%; }
+      .options > .code { width: 100%; background-color: rgba(255, 255, 255, 0.5); }
       .options > .code.gen { height: 40%; }
       .options > .code.fn { height: 5%; }
       .options > .code.opts { height: 20%; }
