@@ -199,10 +199,10 @@ let elem = (cls=null, type='div') => {
   drawWithParams();
   
   body.addEventListener('keydown', evt => {
-    if (evt.key !== 'o') return;
+    if (!evt.ctrlKey || evt.key !== 'o') return;
     evt.preventDefault();
     
-    if (!evt.altKey || !evt.ctrlKey) return;
+    if (!evt.altKey) return;
     options.classList.toggle('active');
     if (!options.classList.contains('active')) updateParams();
   });
