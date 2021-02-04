@@ -51,7 +51,7 @@ if (!createProtocolServer.hasOwnProperty(protocol)) throw new Error(`Invalid pro
       res.writeHead(status, { 'Content-Type': type, 'Content-Length': Buffer.byteLength(content) });
       res.end(content);
       
-      console.log(`${req.connection.remoteAddress} <- ${req.url}${reqMsg.length ? ':' : ''} (${((new Date() - t) / 1000).toFixed(2)}ms)`);
+      console.log(`${req.connection.remoteAddress} <- ${req.url}${reqMsg.length ? ':' : ''} (${((new Date() - t) / 1000).toFixed(2)}s)`);
       if (reqMsg.length) console.log(reqMsg.map(ln => `> ${ln}`).join('\n'));
       console.log('');
       
